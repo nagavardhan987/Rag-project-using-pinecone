@@ -4,7 +4,7 @@ uvicorn==0.29.0
 langchain==0.2.14
 langchain-openai==0.1.22
 langchain-community==0.2.12
-langchain-huggingface==0.0.3
+langchain-groq==0.1.6
 
 chromadb==0.5.5
 pymupdf==1.24.10
@@ -12,3 +12,4 @@ python-multipart==0.0.9
 
 pydantic==2.6.4
 pydantic-core==2.16.3
+pytest==7.4.2
