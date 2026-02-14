@@ -18,6 +18,9 @@ from pinecone.grpc import PineconeGRPC as Pinecone  # gRPC client
 
 import os
 import re
+import pydantic
+
+
 from typing import List, Optional
 
 

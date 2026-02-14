@@ -30,7 +30,7 @@ export default function Home() {
 
   const claimTextAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
-  // ---------- Load from localStorage on first mount ----------
+  // ---------- Load saved state ----------
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
@@ -42,12 +42,10 @@ export default function Home() {
       setAnswer(saved.answer || '')
       setClaim(saved.claim || '')
       setFactResult(saved.factResult || null)
-    } catch {
-      // ignore corrupt storage
-    }
+    } catch {}
   }, [])
 
-  // ---------- Persist to localStorage whenever key state changes ----------
+  // ---------- Save state ----------
   useEffect(() => {
     if (typeof window === 'undefined') return
     const stateToSave: PersistedState = {
@@ -65,6 +63,7 @@ export default function Home() {
     setLoading(true)
     setAnswer('')
     setStatus('')
+
     try {
       const res = await fetch('http://localhost:8000/query', {
         method: 'POST',
@@ -73,14 +72,13 @@ export default function Home() {
       })
 
       const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.detail || JSON.stringify(data))
-      }
+      if (!res.ok) throw new Error(data.detail || JSON.stringify(data))
 
       setAnswer(data.answer ?? 'No answer returned.')
     } catch (error: any) {
       setStatus(`❌ Query failed: ${error.message}`)
     }
+
     setLoading(false)
   }
 
@@ -102,9 +100,7 @@ export default function Home() {
       })
 
       const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.detail || JSON.stringify(data))
-      }
+      if (!res.ok) throw new Error(data.detail || JSON.stringify(data))
 
       const parsed = JSON.parse(data.result)
 
@@ -133,23 +129,25 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-[#4b29ff] via-[#7b3fe4] to-[#111827] px-4 py-8 md:px-8 md:py-10">
       <div className="max-w-4xl mx-auto rounded-[2.2rem] bg-white/5 shadow-[0_40px_120px_rgba(15,23,42,0.7)] p-[1px]">
         <div className="rounded-[2.1rem] bg-slate-950/70 backdrop-blur-2xl border border-white/10 px-5 py-6 md:px-10 md:py-10">
-          {/* Header */}
+
+          {/* HEADER */}
           <div className="flex flex-col gap-3 mb-8">
             <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-purple-200/80">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              AI‑powered document assistant
+              AI Document Intelligence
             </p>
+
             <h1 className="text-3xl md:text-5xl font-semibold text-white">
-              RAG{' '}
+              DocuMind{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-sky-400 to-emerald-300">
-                Document Q&A
+                AI
               </span>
             </h1>
+
             <p className="text-sm md:text-base text-slate-300/80 max-w-xl">
-              Your PDFs are already ingested into Pinecone. Ask a question and
-              the AI will answer using only those documents, or fact‑check any
-              claim against them.
+              Understand your documents. Verify every claim. Retrieve only what matters.
             </p>
+
             {status && (
               <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 px-4 py-2 text-xs md:text-sm text-rose-100 shadow-lg">
                 {status}
@@ -157,7 +155,7 @@ export default function Home() {
             )}
           </div>
 
-          {/* Question + Answer */}
+          {/* QUESTION SECTION */}
           <div className="rounded-3xl border border-white/10 bg-white/5 p-4 md:p-5 space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -165,8 +163,7 @@ export default function Home() {
                   Ask a question
                 </h2>
                 <p className="mt-1 text-xs text-slate-300/80">
-                  The answer will be grounded in the documents stored in
-                  Pinecone.
+                  Answers are grounded only in your uploaded PDFs.
                 </p>
               </div>
               <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200">
@@ -178,16 +175,17 @@ export default function Home() {
               <textarea
                 value={question}
                 onChange={e => setQuestion(e.target.value)}
-                placeholder="e.g. According to these notes, what is LangChain and why is it useful?"
-                className="w-full resize-none rounded-xl border border-transparent bg-transparent p-0 text-sm md:text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400 focus:outline-none"
+                placeholder="Ask anything from your documents..."
+                className="w-full resize-none rounded-xl border border-transparent bg-transparent p-0 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400 focus:outline-none"
                 rows={3}
                 disabled={loading}
               />
+
               <div className="mt-3 flex items-center justify-between gap-3">
                 <p className="text-[11px] text-slate-400">
-                  Pro tip: ask specific questions like “Summarize the main LLM
-                  challenges mentioned in the notes.”
+                  Tip: Ask specific, document-grounded questions.
                 </p>
+
                 <button
                   onClick={handleQuery}
                   disabled={!question.trim() || loading}
@@ -208,8 +206,9 @@ export default function Home() {
             {answer && (
               <div className="mt-1 flex flex-col gap-2">
                 <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
-                  AI response
+                  AI Response
                 </div>
+
                 <div className="rounded-2xl bg-gradient-to-br from-emerald-500/15 via-slate-900/70 to-teal-500/20 border border-emerald-400/40 px-4 py-4 shadow-[0_18px_60px_rgba(16,185,129,0.3)]">
                   <p className="text-sm md:text-base leading-relaxed text-slate-50 whitespace-pre-wrap">
                     {answer}
@@ -219,18 +218,18 @@ export default function Home() {
             )}
           </div>
 
-          {/* Fact checker */}
+          {/* FACT CHECKER */}
           <section className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-4 md:p-5 space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-base md:text-lg font-semibold text-white">
-                  Fact checker
+                  Fact Checker
                 </h2>
                 <p className="mt-1 text-xs text-slate-300/80">
-                  Enter a statement from your notes and check if it is supported
-                  by the uploaded PDFs.
+                  Verify claims using your uploaded documents.
                 </p>
               </div>
+
               <span className="rounded-full bg-sky-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-200">
                 Verification
               </span>
@@ -241,16 +240,17 @@ export default function Home() {
                 ref={claimTextAreaRef}
                 value={claim}
                 onChange={handleClaimChange}
-                placeholder="Example: intolerance is the appearance of characteristic toxic effects of a drug in an individual at therapeutic doses."
-                className="w-full rounded-xl border border-transparent bg-transparent p-0 text-sm md:text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400 focus:outline-none overflow-hidden"
+                placeholder="Enter a claim to verify..."
+                className="w-full rounded-xl border border-transparent bg-transparent p-0 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400 focus:outline-none overflow-hidden"
                 rows={1}
                 disabled={factLoading}
               />
+
               <div className="mt-3 flex items-center justify-between gap-3">
                 <p className="text-[11px] text-slate-400">
-                  The model will return SUPPORTED, REFUTED, or NOT_ENOUGH_INFO
-                  based only on your PDFs.
+                  Returns SUPPORTED, REFUTED, or NOT_ENOUGH_INFO.
                 </p>
+
                 <button
                   onClick={handleFactCheck}
                   disabled={!claim.trim() || factLoading}
@@ -262,7 +262,7 @@ export default function Home() {
                       Checking…
                     </>
                   ) : (
-                    <>Fact check</>
+                    <>Fact Check</>
                   )}
                 </button>
               </div>
@@ -279,6 +279,7 @@ export default function Home() {
                     <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                       Verdict
                     </span>
+
                     <span
                       className={
                         factResult.verdict === 'SUPPORTED'
@@ -300,7 +301,7 @@ export default function Home() {
                   {factResult.evidence.length > 0 && (
                     <div>
                       <p className="font-semibold text-slate-100 mb-1">
-                        Evidence from PDFs:
+                        Evidence:
                       </p>
                       <ul className="list-disc pl-5 space-y-1 text-slate-200">
                         {factResult.evidence.map((ev, idx) => (
@@ -314,10 +315,6 @@ export default function Home() {
             </div>
           </section>
 
-          <div className="mt-6 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Running on FastAPI · Groq · Pinecone · LangChain</span>
-            <span>Built by you 🚀</span>
-          </div>
         </div>
       </div>
     </div>
